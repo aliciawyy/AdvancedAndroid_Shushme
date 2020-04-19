@@ -15,16 +15,13 @@ package com.example.android.shushme;
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
-import android.Manifest;
 import android.Manifest.permission;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -35,19 +32,26 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.common.api.Status;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.Place.Field;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.AutocompleteActivity;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
+import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements
     GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 0;
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String API_KEY = "AIzaSyCTmMdhIcJoJfDk7IuxA-YO7U3BCa-oP3U";
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 0;
+    private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
 
-    // Member variables
     private PlaceListAdapter mAdapter;
     private RecyclerView mRecyclerView;
     private CheckBox mLocationPermissionCheckbox;
-    private Button mAddNewLocationButton;
 
     /**
      * Called when the activity is starting
@@ -65,22 +69,12 @@ public class MainActivity extends AppCompatActivity implements
         mAdapter = new PlaceListAdapter(this);
         mRecyclerView.setAdapter(mAdapter);
 
-        mLocationPermissionCheckbox = findViewById(R.id.checkbox_location_permission);
-        mAddNewLocationButton = findViewById(R.id.button_add_new_location);
-        mAddNewLocationButton.setOnClickListener(v -> {
-            if (ContextCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) !=
-                PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, R.string.location_permission_needed, Toast.LENGTH_SHORT)
-                    .show();
-            }
-        });
+        if (!Places.isInitialized()) {
+            Places.initialize(getApplicationContext(), API_KEY);
+        }
 
-        GoogleApiClient googleApiClient = new GoogleApiClient.Builder(this)
-            .addConnectionCallbacks(this)
-            .addOnConnectionFailedListener(this)
-            .addApi(LocationServices.API)
-            .enableAutoManage(this, this)
-            .build();
+        mLocationPermissionCheckbox = findViewById(R.id.checkbox_location_permission);
+
     }
 
     @Override
@@ -100,6 +94,38 @@ public class MainActivity extends AppCompatActivity implements
                         LOCATION_PERMISSION_REQUEST_CODE);
                 }
             });
+        }
+
+        Button addNewLocationButton = findViewById(R.id.button_add_new_location);
+        addNewLocationButton.setOnClickListener(v -> {
+            if (ContextCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, R.string.location_permission_needed, Toast.LENGTH_SHORT)
+                    .show();
+            } else {
+                List<Field> fields = Arrays.asList(Field.ID, Field.NAME);
+                Intent intent =
+                    new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields)
+                        .build(this);
+                startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case PLACE_AUTOCOMPLETE_REQUEST_CODE: {
+                if (resultCode == RESULT_OK) {
+                    Place place = Autocomplete.getPlaceFromIntent(data);
+                    Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
+                } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
+                    Status status = Autocomplete.getStatusFromIntent(data);
+                    Log.i(TAG, status.getStatusMessage());
+                }
+                return;
+            }
         }
     }
 
