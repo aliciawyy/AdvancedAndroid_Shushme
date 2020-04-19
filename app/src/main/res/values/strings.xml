@@ -5,4 +5,10 @@
     <string name="setting_enabled" translatable="false">EnabledSetting</string>
     <string name="settings_label">Settings</string>
     <string name="enable_geofences">Enable Geofences</string>
+    <string name="location_permission">Location Permissions</string>
+    <string name="icon_geo">Geo Icon</string>
+    <string name="icon_location">Location Icon</string>
+    <string name="location_permission_granted">Location permission is granted!</string>
+    <string name="location_permission_needed">Location permission is needed to add new locations!</string>
+    <string name="location_permission_not_granted">Location permission is not granted. It is needed to run this App.</string>
 </resources>
