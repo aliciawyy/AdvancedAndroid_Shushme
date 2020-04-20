@@ -30,6 +30,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.android.shushme.provider.PlaceRepository;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
@@ -45,7 +46,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements
     GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final String API_KEY = "AIzaSyCTmMdhIcJoJfDk7IuxA-YO7U3BCa-oP3U";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 0;
     private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
 
@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        PlaceRepository.initialize(this);
 
         // Set up the recycler view
         mRecyclerView = (RecyclerView) findViewById(R.id.places_list_recycler_view);
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements
         mRecyclerView.setAdapter(mAdapter);
 
         if (!Places.isInitialized()) {
-            Places.initialize(getApplicationContext(), API_KEY);
+            Places.initialize(getApplicationContext(), GoogleAPI.API_KEY);
         }
 
         mLocationPermissionCheckbox = findViewById(R.id.checkbox_location_permission);
@@ -119,6 +120,7 @@ public class MainActivity extends AppCompatActivity implements
             case PLACE_AUTOCOMPLETE_REQUEST_CODE: {
                 if (resultCode == RESULT_OK) {
                     Place place = Autocomplete.getPlaceFromIntent(data);
+                    PlaceRepository.get().add(place);
                     Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
                 } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
                     Status status = Autocomplete.getStatusFromIntent(data);

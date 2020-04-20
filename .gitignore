@@ -9,6 +9,7 @@
 
 # Java class files
 *.class
+app/src/main/java/com/example/android/shushme/GoogleAPI.java
 
 # generated files
 bin/
