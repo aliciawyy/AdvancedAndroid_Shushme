@@ -4,15 +4,19 @@ import android.content.Context;
 import androidx.lifecycle.LiveData;
 import androidx.room.Room;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class PlaceRepository {
   private static PlaceRepository sInstance;
   private final PlaceDao mPlaceDao;
+  private final Executor mExecutor;
 
   private PlaceRepository(Context context) {
     PlaceDatabase placeDatabase = Room.databaseBuilder(
         context, PlaceDatabase.class, PlaceDatabase.TABLE_NAME).build();
     mPlaceDao = placeDatabase.placeDao();
+    mExecutor = Executors.newSingleThreadExecutor();
   }
 
   public static void initialize(Context context) {
@@ -30,10 +34,14 @@ public class PlaceRepository {
   }
 
   public void add(PlaceEntity placeEntity) {
-    mPlaceDao.add(placeEntity);
+    mExecutor.execute(() -> mPlaceDao.add(placeEntity));
   }
 
-  void remove(PlaceEntity place) {
-    mPlaceDao.remove(place);
+  public void update(PlaceEntity placeEntity) {
+    mExecutor.execute(() -> mPlaceDao.update(placeEntity));
+  }
+
+  public void remove(PlaceEntity placeEntity) {
+    mExecutor.execute(() -> mPlaceDao.remove(placeEntity));
   }
 }
