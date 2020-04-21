@@ -1,9 +1,8 @@
-package com.example.android.shushme.provider;
+package com.example.android.shushme.data;
 
 import android.content.Context;
 import androidx.lifecycle.LiveData;
 import androidx.room.Room;
-import com.google.android.libraries.places.api.model.Place;
 import java.util.List;
 
 public class PlaceRepository {
@@ -30,8 +29,8 @@ public class PlaceRepository {
     return mPlaceDao.getAll();
   }
 
-  public void add(Place place) {
-    mPlaceDao.add(new PlaceEntity(place.getId(), place.getName(), place.getAddress()));
+  public void add(PlaceEntity placeEntity) {
+    mPlaceDao.add(placeEntity);
   }
 
   void remove(PlaceEntity place) {

@@ -16,24 +16,20 @@ package com.example.android.shushme;
 * limitations under the License.
 */
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.android.shushme.data.PlaceEntity;
+import java.util.List;
 
 public class PlaceListAdapter extends RecyclerView.Adapter<PlaceListAdapter.PlaceViewHolder> {
 
-    private Context mContext;
+    private final List<PlaceEntity> mPlaces;
 
-    /**
-     * Constructor using the context and the db cursor
-     *
-     * @param context the calling context/activity
-     */
-    public PlaceListAdapter(Context context) {
-        this.mContext = context;
+    public PlaceListAdapter(List<PlaceEntity> places) {
+        this.mPlaces = places;
     }
 
     /**
@@ -46,7 +42,7 @@ public class PlaceListAdapter extends RecyclerView.Adapter<PlaceListAdapter.Plac
     @Override
     public PlaceViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // Get the RecyclerView item layout
-        LayoutInflater inflater = LayoutInflater.from(mContext);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View view = inflater.inflate(R.layout.item_place_card, parent, false);
         return new PlaceViewHolder(view);
     }
@@ -59,7 +55,7 @@ public class PlaceListAdapter extends RecyclerView.Adapter<PlaceListAdapter.Plac
      */
     @Override
     public void onBindViewHolder(PlaceViewHolder holder, int position) {
-
+        holder.onBind(mPlaces.get(position));
     }
 
 
@@ -70,7 +66,7 @@ public class PlaceListAdapter extends RecyclerView.Adapter<PlaceListAdapter.Plac
      */
     @Override
     public int getItemCount() {
-        return 0;
+        return mPlaces.size();
     }
 
     /**
@@ -81,11 +77,15 @@ public class PlaceListAdapter extends RecyclerView.Adapter<PlaceListAdapter.Plac
         TextView nameTextView;
         TextView addressTextView;
 
-        public PlaceViewHolder(View itemView) {
+        PlaceViewHolder(View itemView) {
             super(itemView);
-            nameTextView = (TextView) itemView.findViewById(R.id.name_text_view);
-            addressTextView = (TextView) itemView.findViewById(R.id.address_text_view);
+            nameTextView = itemView.findViewById(R.id.name_text_view);
+            addressTextView = itemView.findViewById(R.id.address_text_view);
         }
 
+        void onBind(PlaceEntity placeEntity) {
+            nameTextView.setText(placeEntity.name);
+            addressTextView.setText(placeEntity.address);
+        }
     }
 }

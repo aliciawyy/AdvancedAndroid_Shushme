@@ -1,4 +1,4 @@
-package com.example.android.shushme.provider;
+package com.example.android.shushme.data;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;

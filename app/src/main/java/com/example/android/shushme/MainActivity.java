@@ -28,9 +28,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.android.shushme.provider.PlaceRepository;
+import com.example.android.shushme.data.PlaceEntity;
+import com.example.android.shushme.data.PlaceUtils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
@@ -49,9 +51,9 @@ public class MainActivity extends AppCompatActivity implements
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 0;
     private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
 
-    private PlaceListAdapter mAdapter;
     private RecyclerView mRecyclerView;
     private CheckBox mLocationPermissionCheckbox;
+    private PlaceViewModel mPlaceViewModel;
 
     /**
      * Called when the activity is starting
@@ -62,20 +64,21 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        PlaceRepository.initialize(this);
-
-        // Set up the recycler view
-        mRecyclerView = (RecyclerView) findViewById(R.id.places_list_recycler_view);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mAdapter = new PlaceListAdapter(this);
-        mRecyclerView.setAdapter(mAdapter);
-
         if (!Places.isInitialized()) {
             Places.initialize(getApplicationContext(), GoogleAPI.API_KEY);
         }
-
+        mPlaceViewModel = new ViewModelProvider(this).get(PlaceViewModel.class);
+        mPlaceViewModel.initialize(this);
+        // Set up the recycler view
+        mRecyclerView = (RecyclerView) findViewById(R.id.places_list_recycler_view);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mLocationPermissionCheckbox = findViewById(R.id.checkbox_location_permission);
+    }
 
+    private void updateUI(List<PlaceEntity> placeEntities) {
+        Log.i(TAG, "Number of places = " + placeEntities.size());
+        PlaceListAdapter adapter = new PlaceListAdapter(placeEntities);
+        mRecyclerView.setAdapter(adapter);
     }
 
     @Override
@@ -111,6 +114,10 @@ public class MainActivity extends AppCompatActivity implements
                 startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
             }
         });
+
+        mPlaceViewModel.getAllPlaces().observe(
+            this, this::updateUI
+        );
     }
 
     @Override
@@ -120,13 +127,12 @@ public class MainActivity extends AppCompatActivity implements
             case PLACE_AUTOCOMPLETE_REQUEST_CODE: {
                 if (resultCode == RESULT_OK) {
                     Place place = Autocomplete.getPlaceFromIntent(data);
-                    PlaceRepository.get().add(place);
+                    mPlaceViewModel.addPlace(PlaceUtils.toPlaceEntity(place));
                     Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
                 } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
                     Status status = Autocomplete.getStatusFromIntent(data);
                     Log.i(TAG, status.getStatusMessage());
                 }
-                return;
             }
         }
     }

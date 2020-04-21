@@ -1,4 +1,4 @@
-package com.example.android.shushme.provider;
+package com.example.android.shushme.data;
 
 import androidx.room.Database;
 import androidx.room.RoomDatabase;
